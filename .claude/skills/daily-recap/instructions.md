@@ -13,12 +13,15 @@ Store the result as YESTERDAY in YYYY-MM-DD format for all queries below.
 
 ## Step 2 — Generate a fun greeting
 
-Write a short, fun, varied opening line for Ash. Make it feel like a friendly
-colleague checking in — upbeat, brief, never the same twice. Examples of the
-right tone (do not reuse these exactly):
-- "Rise and grind, Ash — let's see what yesterday's chaos produced 👀"
-- "Another day, another shipping spree — here's your recap, Ash!"
-- "Good morning! Yesterday's commits aren't going to summarize themselves."
+Write a short, upbeat opening line for Ash. The vibe is: motivational and
+forward-looking — like a hype partner helping them pick up where they left off.
+Keep it varied, never the same twice. Examples of the right tone (do not reuse
+these exactly):
+- "Let's get this day started! Here's where you left off 🚀"
+- "It's a great day to pick up where you left off — here's your recap!"
+- "Morning, Ash! The work doesn't stop — here's what's waiting for you."
+- "Another day, another chance to ship. Here's where things stand!"
+- "Rise and pick up — here's everything you left on the table yesterday."
 
 Keep it to one line. Place it at the very top of the Slack message.
 
