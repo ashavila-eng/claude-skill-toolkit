@@ -1,132 +1,70 @@
 ---
-name: daily-recap
-description: >
-  Recaps the previous day's work by pulling together git commits, GitHub PRs,
-  Jira activity, and Confluence page updates from yesterday. Use this when the
-  user asks for a daily standup summary, wants to know what was done yesterday,
-  or needs a recap before a standup meeting. Trigger on phrases like "recap
-  yesterday", "what did I do yesterday", "daily recap", "standup summary", or
-  "what did we ship yesterday".
+name: daily-recap-instructions
+description: Instructions for the remote daily recap agent. Executed by the scheduled trigger.
 ---
 
-Produce a concise, narrative recap of yesterday's engineering work. Pull from
-every available signal — git, GitHub, Jira, Confluence — and synthesize them
-into a human-readable summary the user can paste into a standup or send to a
-manager.
+Produce a daily standup recap for ash.avila and send it as a Slack DM.
 
-## Step 1 — Establish "yesterday"
+## Step 1 — Establish yesterday's date
 
-Today's date is available in context as `currentDate`. Yesterday = today minus
-one calendar day. Format it as `YYYY-MM-DD` for use in queries.
+Run `date` in Bash to get today's date. Yesterday = today minus 1 calendar day.
+If today is Monday, use last Friday instead (skip the weekend).
+Store the result as YESTERDAY in YYYY-MM-DD format for all queries below.
 
-If today is a Monday, yesterday is the previous Friday (skip the weekend).
+## Step 2 — Resolve the Jira account ID
 
-## Step 2 — Git commits
+Using the Atlassian MCP, call `lookupJiraAccountId` with the username
+`ash.avila@get-carrot.com` to get the exact Jira account ID. Store this as
+ACCOUNT_ID — use it in all Jira and Confluence queries below.
 
-In the current working directory, run:
+## Step 3 — Jira activity
 
-```
-git log --oneline --all --since="YESTERDAY 00:00" --until="YESTERDAY 23:59" \
-  --author="$(git config user.email)" --format="%h %s (%D)"
-```
+Using the Atlassian MCP, search Jira with this JQL (substitute real values):
 
-If the cwd is not a git repo, skip silently.
+  updated >= 'YESTERDAY' AND (assignee = "ACCOUNT_ID" OR comment ~ "ash.avila@get-carrot.com")
 
-Also check if the user has a `~/workspace` or `~/code` or `~/dev` directory —
-if it exists, iterate one level deep and run the same `git log` command in any
-subdirectory that is a git repo. Collect all results.
+Limit to 20 results. For each issue record: key, summary, current status, and
+whether ash.avila is the assignee or just a commenter.
 
-Deduplicate commits by hash. Group by repo name (the directory name).
+## Step 4 — Confluence updates
 
-## Step 3 — GitHub PRs
+Using the Atlassian MCP, search Confluence with this CQL (substitute real values):
 
-Run these `gh` commands (silently skip if `gh` is not authenticated):
+  contributor = "ACCOUNT_ID" AND lastModified >= 'YESTERDAY'
 
-```bash
-# PRs opened yesterday
-gh search prs --author=@me --created="YESTERDAY" --json title,url,state,repository
+Limit to 10 results. For each page note: title, space name, and what
+meaningfully changed. Skip pages where the only change was an automated macro
+refresh or Jira embed update.
 
-# PRs merged yesterday
-gh search prs --author=@me --merged="YESTERDAY" --json title,url,state,repository
+## Step 5 — Write the recap
 
-# PRs reviewed yesterday (comments/reviews left)
-gh search prs --reviewed-by=@me --updated="YESTERDAY" --json title,url,state,repository,author
-```
-
-Deduplicate by URL. Tag each with its status: Opened, Merged, or Reviewed.
-
-## Step 4 — Jira issues (if available)
-
-If the Atlassian MCP tools are available, run:
-```
-searchJiraIssuesUsingJql: "updated >= 'YESTERDAY' AND updated <= 'YESTERDAY 23:59' AND (assignee = currentUser() OR comment ~ currentUser())"
-```
-
-Limit to 20 results. For each issue, note: key, summary, status.
-
-If Atlassian MCP is not available, skip this step silently.
-
-## Step 5 — Confluence updates (if available)
-
-If the Atlassian MCP tools are available, search for Confluence pages edited
-yesterday:
-
-```
-searchConfluenceUsingCql: "contributor = currentUser() AND lastModified >= 'YESTERDAY' AND lastModified <= 'YESTERDAY 23:59'"
-```
-
-Limit to 10 results. For each page, fetch it with `getConfluencePage` and note:
-- Page title and space name
-- What section(s) changed (scan the version history comment if present, or
-  compare headings against the page body to infer what was touched)
-- Whether it was a minor edit (typo fix, formatting) or a meaningful update
-  (new content, status change, implementation notes added)
-
-Skip pages where the only change was an automated update (e.g. status macros,
-Jira issue embeds refreshing). Focus on pages the user actively wrote.
-
-If Atlassian MCP is not available, skip this step silently.
-
-## Step 6 — Synthesize the recap
-
-Combine all signals into a structured summary. Use this format:
+Synthesize everything into this format:
 
 ---
-
-### Daily Recap — [YESTERDAY formatted as "Monday, April 21"]
+### Daily Recap — [Weekday, Month DD]
 
 **What shipped / merged**
-- [List PRs merged or commits that look like features/fixes — be specific about what changed]
+- [Jira tickets moved to Done / Closed / Resolved]
 
 **What was in progress**
-- [PRs opened but not yet merged, Jira tickets moved to In Progress]
+- [Jira tickets moved to In Progress, or updated with substantive work]
 
 **Reviews / collaboration**
-- [PRs reviewed for others, comments left on Jira tickets]
+- [Jira issues commented on where ash.avila is not the assignee]
 
 **Docs updated**
-- [Confluence pages meaningfully edited — page title, space, and what changed]
-
-**Key commits** _(if not already covered above)_
-- `repo-name`: Short description of what changed
-
+- [Confluence pages meaningfully edited — page title (Space name), what changed]
 ---
 
-Rules for the narrative:
-- Lead with outcomes, not activity ("Shipped X" not "Worked on X")
-- Group related commits under one bullet if they form a logical unit
-- Skip noise: merge commits, dependency bumps, lint-only changes, version bumps
-- If a commit message is cryptic, infer meaning from the diff summary if available
+Rules:
+- Lead with outcomes: "Shipped X" not "Worked on X"
+- Omit any section that has nothing to report
+- If there is truly nothing across all sources, say so plainly in one line
 - Keep each bullet to one line
-- If there's nothing from a section (e.g. no PRs), omit that section entirely
-- If there's truly nothing to report across all sources, say so plainly
+- Skip noise: automated status syncs, minor formatting edits
 
-## Step 6 — Surface blockers and follow-ups
+## Step 6 — Send the recap via Slack DM
 
-After the main recap, add a short **Blockers / Notes** section only if you
-spot signals of incomplete work:
-- PRs open for more than 1 day with no review
-- Jira tickets still In Progress with no recent commit activity
-- Commits referencing "WIP", "TODO", "FIXME", or "broken"
-
-Keep this section to 3 items max. If nothing notable, omit it entirely.
+Using the Slack MCP, search for the user with display name or username
+`ash.avila` and send the recap as a direct message. Do not post to any
+channel — DM only.
