@@ -27,28 +27,27 @@ Keep it to one line. Place it at the very top of the Slack message.
 
 ## Step 3 — Resolve the Jira account ID
 
-Using the Atlassian MCP, call `lookupJiraAccountId` with the username
-`ash.avila@get-carrot.com` to get the exact Jira account ID. Store this as
-ACCOUNT_ID — use it in all Jira and Confluence queries below.
+Try to call `lookupJiraAccountId` with username `ash.avila@get-carrot.com`.
+If this fails or returns no result, skip Steps 4 and 5 and continue to Step 6.
+Store the result as ACCOUNT_ID.
 
-## Step 4 — Jira activity
+## Step 4 — Jira activity (skip if Step 3 failed)
 
-Using the Atlassian MCP, search Jira with this JQL (substitute real values):
+Search Jira with this JQL:
 
   updated >= 'YESTERDAY' AND (assignee = "ACCOUNT_ID" OR comment ~ "ash.avila@get-carrot.com")
 
-Limit to 20 results. For each issue record: key, summary, current status, and
-whether ash.avila is the assignee or just a commenter.
+Limit to 20 results. If the query fails, skip and continue. For each result
+record: key, summary, status, and whether ash.avila is assignee or commenter.
 
-## Step 5 — Confluence updates
+## Step 5 — Confluence updates (skip if Step 3 failed)
 
-Using the Atlassian MCP, search Confluence with this CQL (substitute real values):
+Search Confluence with this CQL:
 
   contributor = "ACCOUNT_ID" AND lastModified >= 'YESTERDAY'
 
-Limit to 10 results. For each page note: title, space name, and what
-meaningfully changed. Skip pages where the only change was an automated macro
-refresh or Jira embed update.
+Limit to 10 results. If the query fails, skip and continue. For each result
+note: title, space name, what meaningfully changed. Skip automated updates.
 
 ## Step 6 — Write the recap
 
