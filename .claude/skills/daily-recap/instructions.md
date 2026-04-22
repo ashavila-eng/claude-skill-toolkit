@@ -11,13 +11,24 @@ Run `date` in Bash to get today's date. Yesterday = today minus 1 calendar day.
 If today is Monday, use last Friday instead (skip the weekend).
 Store the result as YESTERDAY in YYYY-MM-DD format for all queries below.
 
-## Step 2 — Resolve the Jira account ID
+## Step 2 — Generate a fun greeting
+
+Write a short, fun, varied opening line for Ash. Make it feel like a friendly
+colleague checking in — upbeat, brief, never the same twice. Examples of the
+right tone (do not reuse these exactly):
+- "Rise and grind, Ash — let's see what yesterday's chaos produced 👀"
+- "Another day, another shipping spree — here's your recap, Ash!"
+- "Good morning! Yesterday's commits aren't going to summarize themselves."
+
+Keep it to one line. Place it at the very top of the Slack message.
+
+## Step 3 — Resolve the Jira account ID
 
 Using the Atlassian MCP, call `lookupJiraAccountId` with the username
 `ash.avila@get-carrot.com` to get the exact Jira account ID. Store this as
 ACCOUNT_ID — use it in all Jira and Confluence queries below.
 
-## Step 3 — Jira activity
+## Step 4 — Jira activity
 
 Using the Atlassian MCP, search Jira with this JQL (substitute real values):
 
@@ -26,7 +37,7 @@ Using the Atlassian MCP, search Jira with this JQL (substitute real values):
 Limit to 20 results. For each issue record: key, summary, current status, and
 whether ash.avila is the assignee or just a commenter.
 
-## Step 4 — Confluence updates
+## Step 5 — Confluence updates
 
 Using the Atlassian MCP, search Confluence with this CQL (substitute real values):
 
@@ -36,11 +47,19 @@ Limit to 10 results. For each page note: title, space name, and what
 meaningfully changed. Skip pages where the only change was an automated macro
 refresh or Jira embed update.
 
-## Step 5 — Write the recap
+## Step 6 — Check for Claude Code stats
+
+Look in the current session context for a `claude_stats` value passed via the
+run body. If present, include it verbatim in the recap under a "Claude Code"
+section. If absent, omit that section.
+
+## Step 7 — Write the recap
 
 Synthesize everything into this format:
 
 ---
+[fun greeting from Step 2]
+
 ### Daily Recap — [Weekday, Month DD]
 
 **What shipped / merged**
@@ -54,6 +73,9 @@ Synthesize everything into this format:
 
 **Docs updated**
 - [Confluence pages meaningfully edited — page title (Space name), what changed]
+
+**Claude Code**
+- [Time per project from claude_stats, if available]
 ---
 
 Rules:
@@ -63,7 +85,7 @@ Rules:
 - Keep each bullet to one line
 - Skip noise: automated status syncs, minor formatting edits
 
-## Step 6 — Send the recap via Slack DM
+## Step 8 — Send the recap via Slack DM
 
 Using the Slack MCP, search for the user with display name or username
 `ash.avila` and send the recap as a direct message. Do not post to any

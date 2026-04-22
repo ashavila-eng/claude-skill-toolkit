@@ -4,7 +4,9 @@
       "Skill(schedule)",
       "Skill(update-config)",
       "Bash(mkdir -p \"/Users/ash.avila/workspace/claude:skills/.claude/skills/daily-recap\")",
-      "Bash(mv \"/Users/ash.avila/workspace/claude:skills/daily-recap/SKILL.md\" \"/Users/ash.avila/workspace/claude:skills/.claude/skills/daily-recap/SKILL.md\")"
+      "Bash(mv \"/Users/ash.avila/workspace/claude:skills/daily-recap/SKILL.md\" \"/Users/ash.avila/workspace/claude:skills/.claude/skills/daily-recap/SKILL.md\")",
+      "Bash(mkdir -p ~/.claude/skills/daily-recap)",
+      "Bash(cp \"/Users/ash.avila/workspace/claude:skills/.claude/skills/daily-recap/SKILL.md\" ~/.claude/skills/daily-recap/SKILL.md)"
     ]
   }
 }
