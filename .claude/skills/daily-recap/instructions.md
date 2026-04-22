@@ -90,6 +90,6 @@ Rules:
 
 ## Step 8 — Send the recap via Slack DM
 
-Using the Slack MCP, search for the user with display name or username
-`ash.avila` and send the recap as a direct message. Do not post to any
-channel — DM only.
+Using the Slack MCP `slack_send_message` tool, send the recap as a DM:
+- channel_id: `U0A2MLJT62Z`  (ash.avila's Slack user ID — use this directly, no lookup needed)
+- message: the full recap text from Step 7
