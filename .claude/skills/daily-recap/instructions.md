@@ -7,79 +7,29 @@ Produce a daily standup recap for ash.avila and send it as a Slack DM.
 
 ## Step 1 — Establish yesterday's date
 
-Run `date` in Bash to get today's date. Yesterday = today minus 1 calendar day.
-If today is Monday, use last Friday instead (skip the weekend).
-Store the result as YESTERDAY in YYYY-MM-DD format for all queries below.
+Run `date -v-1d +"%A, %B %-d"` in Bash to get yesterday's date formatted as
+"Tuesday, April 21". If today is Monday, run `date -v-3d +"%A, %B %-d"` instead
+to get Friday. Store the result as YESTERDAY_LABEL.
 
 ## Step 2 — Generate a fun greeting
 
-Write a short, upbeat opening line for Ash. The vibe is: motivational and
-forward-looking — like a hype partner helping them pick up where they left off.
-Keep it varied, never the same twice. Examples of the right tone (do not reuse
-these exactly):
+Write a short, upbeat opening line for Ash. Motivational and forward-looking —
+like a hype partner helping them pick up where they left off. Never the same
+twice. Examples (do not reuse exactly):
 - "Let's get this day started! Here's where you left off 🚀"
 - "It's a great day to pick up where you left off — here's your recap!"
 - "Morning, Ash! The work doesn't stop — here's what's waiting for you."
-- "Another day, another chance to ship. Here's where things stand!"
-- "Rise and pick up — here's everything you left on the table yesterday."
 
-Keep it to one line. Place it at the very top of the Slack message.
+Keep it to one line.
 
-## Step 3 — Resolve the Jira account ID
+## Step 3 — Send the recap via Slack DM
 
-Try to call `lookupJiraAccountId` with username `ash.avila@get-carrot.com`.
-If this fails or returns no result, skip Steps 4 and 5 and continue to Step 6.
-Store the result as ACCOUNT_ID.
+Using the Slack MCP `slack_send_message` tool, send the following as a DM:
+- channel_id: `U0A2MLJT62Z`
+- message:
 
-## Step 4 — Jira activity (skip if Step 3 failed)
+[greeting from Step 2]
 
-Search Jira with this JQL:
+### Daily Recap — [YESTERDAY_LABEL]
 
-  updated >= 'YESTERDAY' AND (assignee = "ACCOUNT_ID" OR comment ~ "ash.avila@get-carrot.com")
-
-Limit to 20 results. If the query fails, skip and continue. For each result
-record: key, summary, status, and whether ash.avila is assignee or commenter.
-
-## Step 5 — Confluence updates (skip if Step 3 failed)
-
-Search Confluence with this CQL:
-
-  contributor = "ACCOUNT_ID" AND lastModified >= 'YESTERDAY'
-
-Limit to 10 results. If the query fails, skip and continue. For each result
-note: title, space name, what meaningfully changed. Skip automated updates.
-
-## Step 6 — Write the recap
-
-Synthesize everything into this format:
-
----
-[fun greeting from Step 2]
-
-### Daily Recap — [Weekday, Month DD]
-
-**What shipped / merged**
-- [Jira tickets moved to Done / Closed / Resolved]
-
-**What was in progress**
-- [Jira tickets moved to In Progress, or updated with substantive work]
-
-**Reviews / collaboration**
-- [Jira issues commented on where ash.avila is not the assignee]
-
-**Docs updated**
-- [Confluence pages meaningfully edited — page title (Space name), what changed]
----
-
-Rules:
-- Lead with outcomes: "Shipped X" not "Worked on X"
-- Omit any section that has nothing to report
-- If there is truly nothing across all sources, say so plainly in one line
-- Keep each bullet to one line
-- Skip noise: automated status syncs, minor formatting edits
-
-## Step 7 — Send the recap via Slack DM
-
-Using the Slack MCP `slack_send_message` tool, send the recap as a DM:
-- channel_id: `U0A2MLJT62Z`  (ash.avila's Slack user ID — use this directly, no lookup needed)
-- message: the full recap text from Step 6
+No Jira or Confluence data available in this run.
